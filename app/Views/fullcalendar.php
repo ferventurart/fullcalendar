@@ -158,11 +158,11 @@
                             title,
                             id
                         } = evento;
-                        if (confirm(`¿Desea Cambiar la Fecha de la Cita de ${title}?`)) {
+                        if (confirm(`¿Desea Eliminar la Cita de ${title}?`)) {
                             httpFactory.delete("<?= base_url('api/eventos/delete') ?>/" + id)
                                 .then(data => {
                                     calendar.refetchEvents(); // VOY A REFRESCAR LOS EVENTOS DE MI CALENDARIO
-                                    alert('¡Fecha de la cita Actualizada!');
+                                    alert('¡Cita Eliminada!');
                                 }).catch(err => {
                                     console.error(err);
                                 });
@@ -187,7 +187,15 @@
             });
 
             calendar.on('eventDrop', function(info) { //CUANDO ARRASTRAMOS LA CITA DE UNA CASILLA A OTRA OSEA CUANDO LE CAMBIAMOS LA FECHA
-               console.log(info);
+                if (confirm("¿Desea mover la Cita?")) {
+                    httpFactory.put("<?= base_url('api/eventos/update') ?>/" + info.event.id, info.event)
+                        .then(data => {
+                            calendar.refetchEvents(); // VOY A REFRESCAR LOS EVENTOS DE MI CALENDARIO
+                            alert('¡Fecha de la cita Actualizada!');
+                        }).catch(err => {
+                            console.error(err);
+                        });
+                }
             });
 
             calendar.on('eventResize', function(info) {

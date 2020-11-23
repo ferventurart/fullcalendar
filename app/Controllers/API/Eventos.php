@@ -19,10 +19,15 @@ class Eventos extends ResourceController
 
             if (is_array($parametros)) :
                 if (isset($parametros['start']) && isset($parametros['end'])) :
-                    $eventos = $this->model
+                    $consulta = $this->model
                         ->where("start >=", $parametros['start'])
                         ->where("end <=", $parametros['end'])
                         ->findAll();
+
+                    foreach ($consulta as $value) {
+                        $value["allDay"] == 0 ? $value["allDay"] = false : $value["allDay"] = true;
+                        $eventos[] = $value;
+                    }
 
                     return $this->respond($eventos);
                 endif;
@@ -67,7 +72,8 @@ class Eventos extends ResourceController
 
             if ($data == null)
                 return $this->failNotFound("No se ha encontrado un registro con el id {$id}");
-
+                
+                $data["allDay"] == 0 ? $data["allDay"] = false : $data["allDay"] = true;
             return $this->respond($data);
         } catch (\Exception $e) {
             log_message('error', '[ERROR] {exception}', ['exception' => $e]);
@@ -88,9 +94,16 @@ class Eventos extends ResourceController
                     return $this->failNotFound("No se ha encontrado un registro con el id {$id}");
 
                 $edit = $this->request->getJSON();
-                $edit = $this->setDefaultValues($edit);
+            
+                if($data["allDay"] == "1"):
+                    $data["start"] = $edit->start;
+                    $evento = $data;
+                else:
+                    $edit = $this->setDefaultValues($edit);
+                    $evento = $edit;
+                endif;
 
-                if ($this->model->update($id, $edit)) :
+                if ($this->model->update($id, $evento)) :
                     $edit->id = $id;
                     return $this->respondUpdated(["updated" => $edit]);
                 else :
